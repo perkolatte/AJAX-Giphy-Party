@@ -32,17 +32,28 @@ async function retrieveGif(searchTerm) {
 
     // Create a wrapper div to handle rounded corners via clipping
     const gifWrapper = document.createElement("div");
-    gifWrapper.classList.add("gif-wrapper");
+    gifWrapper.classList.add("gif-wrapper", "gif-wrapper--loading");
     // Set aspect-ratio via inline style. This reserves space before the
     // image loads, preventing content layout shift and overlapping.
     if (gifWidth > 0) {
       gifWrapper.style.aspectRatio = `${gifWidth} / ${gifHeight}`;
     }
 
+    // Create and add the loading spinner
+    const loader = document.createElement("div");
+    loader.className = "loader";
+    gifWrapper.appendChild(loader);
+
     // Create the image element
     const gifImg = document.createElement("img");
-    gifImg.src = gifUrl;
 
+    // When the image is fully loaded, remove the loader and loading state
+    gifImg.addEventListener("load", () => {
+      gifWrapper.removeChild(loader);
+      gifWrapper.classList.remove("gif-wrapper--loading");
+    });
+
+    gifImg.src = gifUrl;
     gifWrapper.appendChild(gifImg);
     gifContainer.appendChild(gifWrapper);
   } catch (error) {
