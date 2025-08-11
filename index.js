@@ -1,72 +1,98 @@
 // look back at the <readme.md> file for some hints //
 // working API key //
-const giphyApiKey = "MhAodEJIJxQMxW9XqxKjyXfNYdLoOIym";
-const GIPHY_API_URL = "http://api.giphy.com/v1/gifs/search";
+const CONFIG = {
+  GIPHY_API_KEY: "MhAodEJIJxQMxW9XqxKjyXfNYdLoOIym",
+  GIPHY_API_URL: "http://api.giphy.com/v1/gifs/search",
+};
 
 const searchForm = document.getElementById("search-form");
 const searchInput = document.getElementById("search-input");
 const gifContainer = document.getElementById("gif-container");
 const clearGifsButton = document.getElementById("clear-gifs-button");
 
-async function retrieveGif(searchTerm) {
+/**
+ * Fetches data for a random GIF from the Giphy API.
+ * @param {string} searchTerm - The term to search for.
+ * @returns {Promise<{data: object|null, error: string|null}>} An object with gif data or an error message.
+ */
+async function fetchRandomGifData(searchTerm) {
   try {
-    const response = await axios.get(GIPHY_API_URL, {
-      params: {
-        api_key: giphyApiKey,
-        q: searchTerm,
-      },
+    const response = await axios.get(CONFIG.GIPHY_API_URL, {
+      params: { api_key: CONFIG.GIPHY_API_KEY, q: searchTerm },
     });
 
     const gifs = response.data.data;
-    if (gifs.length === 0) {
-      alert("No GIFs found for that search term.");
-      return;
-    }
+    if (gifs.length === 0) return { data: null, error: null };
 
-    // Select a random GIF from the results
     const randomIndex = Math.floor(Math.random() * gifs.length);
     const randomGif = gifs[randomIndex];
-    const gifUrl = randomGif.images.original.url;
-    const gifWidth = Number(randomGif.images.original.width);
-    const gifHeight = Number(randomGif.images.original.height);
 
-    // Create a wrapper div to handle rounded corners via clipping
-    const gifWrapper = document.createElement("div");
-    gifWrapper.classList.add("gif-wrapper", "gif-wrapper--loading");
-    // Set aspect-ratio via inline style. This reserves space before the
-    // image loads, preventing content layout shift and overlapping.
-    if (gifWidth > 0) {
-      gifWrapper.style.aspectRatio = `${gifWidth} / ${gifHeight}`;
-    }
-
-    // Create and add the loading spinner
-    const loader = document.createElement("div");
-    loader.className = "loader";
-    gifWrapper.appendChild(loader);
-
-    // Create the image element
-    const gifImg = document.createElement("img");
-
-    // When the image is fully loaded, remove the loader and loading state
-    gifImg.addEventListener("load", () => {
-      gifWrapper.removeChild(loader);
-      gifWrapper.classList.remove("gif-wrapper--loading");
-    });
-
-    gifImg.src = gifUrl;
-    gifWrapper.appendChild(gifImg);
-    gifContainer.appendChild(gifWrapper);
+    const data = {
+      url: randomGif.images.original.url,
+      width: Number(randomGif.images.original.width),
+      height: Number(randomGif.images.original.height),
+    };
+    return { data, error: null };
   } catch (error) {
     console.error("API Request Failed:", error);
+    return {
+      data: null,
+      error: "Failed to fetch GIF. Please try again later.",
+    };
   }
 }
 
-searchForm.addEventListener("submit", function (event) {
-  event.preventDefault();
+/**
+ * Creates a GIF element with a loading spinner.
+ * @param {object} gifData - An object containing { url, width, height }.
+ * @returns {HTMLElement} The fully constructed gif wrapper element.
+ */
+function createGifElement({ url, width, height }) {
+  const gifWrapper = document.createElement("div");
+  gifWrapper.classList.add("gif-wrapper", "gif-wrapper--loading");
 
-  const searchTerm = searchInput.value;
-  retrieveGif(searchTerm);
-});
+  if (width > 0) {
+    gifWrapper.style.aspectRatio = `${width} / ${height}`;
+  }
+
+  const loader = document.createElement("div");
+  loader.className = "loader";
+  gifWrapper.appendChild(loader);
+
+  const gifImg = document.createElement("img");
+  gifImg.addEventListener("load", () => {
+    gifWrapper.removeChild(loader);
+    gifWrapper.classList.remove("gif-wrapper--loading");
+  });
+  gifImg.src = url;
+
+  gifWrapper.appendChild(gifImg);
+  return gifWrapper;
+}
+
+/**
+ * Handles the form submission, orchestrating the fetch and DOM update.
+ * @param {Event} event - The form submission event.
+ */
+async function handleSearchSubmit(event) {
+  event.preventDefault();
+  const searchTerm = searchInput.value.trim(); // Trim whitespace
+  if (!searchTerm) return;
+
+  const { data, error } = await fetchRandomGifData(searchTerm);
+
+  if (error) {
+    alert(error);
+  } else if (data) {
+    const gifElement = createGifElement(data);
+    gifContainer.appendChild(gifElement);
+  } else {
+    alert("No GIFs found for that search term.");
+  }
+}
+
+// Event Listeners
+searchForm.addEventListener("submit", handleSearchSubmit);
 
 // Event listener for the "Clear GIFs" button
 clearGifsButton.addEventListener("click", () => (gifContainer.innerHTML = ""));
