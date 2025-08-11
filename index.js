@@ -27,11 +27,24 @@ async function retrieveGif(searchTerm) {
     const randomIndex = Math.floor(Math.random() * gifs.length);
     const randomGif = gifs[randomIndex];
     const gifUrl = randomGif.images.original.url;
+    const gifWidth = Number(randomGif.images.original.width);
+    const gifHeight = Number(randomGif.images.original.height);
 
-    // Create and append the new GIF element
+    // Create a wrapper div to handle rounded corners via clipping
+    const gifWrapper = document.createElement("div");
+    gifWrapper.classList.add("gif-wrapper");
+    // Set aspect-ratio via inline style. This reserves space before the
+    // image loads, preventing content layout shift and overlapping.
+    if (gifWidth > 0) {
+      gifWrapper.style.aspectRatio = `${gifWidth} / ${gifHeight}`;
+    }
+
+    // Create the image element
     const gifImg = document.createElement("img");
     gifImg.src = gifUrl;
-    gifContainer.appendChild(gifImg);
+
+    gifWrapper.appendChild(gifImg);
+    gifContainer.appendChild(gifWrapper);
   } catch (error) {
     console.error("API Request Failed:", error);
   }
@@ -42,7 +55,6 @@ searchForm.addEventListener("submit", function (event) {
 
   const searchTerm = searchInput.value;
   retrieveGif(searchTerm);
-  searchInput.value = "";
 });
 
 // Event listener for the "Clear GIFs" button
