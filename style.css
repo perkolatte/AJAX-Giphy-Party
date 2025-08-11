@@ -101,6 +101,7 @@ button:hover {
 
 /* Wrapper for each GIF, acting as the column item */
 .gif-wrapper {
+  display: inline-block; /* Prevents rendering glitches in multi-column layouts */
   width: 100%;
   margin-bottom: 1.5rem; /* Vertical spacing between items */
   break-inside: avoid; /* Prevents items from splitting across columns */
