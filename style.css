@@ -101,11 +101,8 @@ button:hover {
 
 /* Wrapper for each GIF, acting as the column item */
 .gif-wrapper {
+  position: relative; /* Establishes a positioning context for the spinner */
   display: inline-block; /* Prevents rendering glitches in multi-column layouts */
-  /* Flexbox is used to center the loading spinner */
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100%;
   margin-bottom: 1.5rem; /* Vertical spacing between items */
   break-inside: avoid; /* Prevents items from splitting across columns */
@@ -133,18 +130,21 @@ button:hover {
 
 /* CSS for the loading spinner */
 .loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 40px;
   height: 40px;
   border: 4px solid var(--border-color);
   border-bottom-color: var(--primary-accent-color);
   border-radius: 50%;
-  display: inline-block;
   animation: rotation 1s linear infinite;
 }
 
 @keyframes rotation {
   to {
-    transform: rotate(360deg);
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
